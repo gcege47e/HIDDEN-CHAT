@@ -2,7 +2,7 @@ import os
 import uuid
 from flask import Flask, render_template_string, request, jsonify
 
-app = Flask(__name__)
+app = Flask(name)
 
 # ذخیره اطلاعات اتاق‌ها در حافظه موقت سرور
 ROOMS = {}
@@ -139,7 +139,8 @@ HTML_TEMPLATE = """
             background: rgba(0, 0, 0, 0.8);
             border: 1px solid var(--neon-purple);
             box-shadow: 0 0 15px var(--neon-purple);
-            color: #fff;
+
+color: #fff;
             padding: 10px 15px;
             border-radius: 10px;
             text-align: center;
@@ -265,7 +266,7 @@ HTML_TEMPLATE = """
             text-align: center;
         }
 
-        .choice-container { display: flex; gap: 20px; margin-top: 20px; }
+.choice-container { display: flex; gap: 20px; margin-top: 20px; }
         .choice-btn {
             width: 75px; height: 75px; border-radius: 50%;
             border: 3px solid #fff; font-size: 2.2rem; font-weight: bold;
@@ -352,7 +353,7 @@ HTML_TEMPLATE = """
         const gain = audioCtx.createGain();
         osc.connect(gain); gain.connect(audioCtx.destination);
 
-        if (type === 'click' || type === 'write') {
+if (type === 'click' || type === 'write') {
             osc.type = 'sine';
             osc.frequency.setValueAtTime(type === 'click' ? 450 : 250, audioCtx.currentTime);
             osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + 0.08);
@@ -439,7 +440,8 @@ HTML_TEMPLATE = """
     }
 
     function copySetupLink() {
-        playSound('click');
+
+playSound('click');
         const linkText = document.getElementById('setup-link-str').innerText;
         navigator.clipboard.writeText(linkText).then(() => {
             showToast('لینک اتاق کپی شد! اکنون می‌توانید آن را در تب جدید باز کنید.');
@@ -455,14 +457,14 @@ HTML_TEMPLATE = """
     function updateGameState() {
         if (!currentRoom) return;
 
-        fetch(`/api/room/${currentRoom}`)
+        fetch(/api/room/${currentRoom})
         .then(res => res.json())
         .then(room => {
-            document.getElementById('p1-name').innerText = room.p1 + (room.p1_sign ? ` (${room.p1_sign})` : '');
+            document.getElementById('p1-name').innerText = room.p1 + (room.p1_sign ?  (${room.p1_sign}) : '');
             document.getElementById('p1-score').innerText = room.scores[room.p1] || 0;
             
             if(room.p2) {
-                document.getElementById('p2-name').innerText = room.p2 + (room.p2_sign ? ` (${room.p2_sign})` : '');
+                document.getElementById('p2-name').innerText = room.p2 + (room.p2_sign ?  (${room.p2_sign}) : '');
                 document.getElementById('p2-score').innerText = room.scores[room.p2] || 0;
             } else {
                 document.getElementById('p2-name').innerText = "در انتظار حریف...";
@@ -489,7 +491,7 @@ HTML_TEMPLATE = """
                     choiceMsgText.innerText = "شما انتخاب‌کننده علامت این راند هستید! انتخاب کنید:";
                     choiceButtons.classList.remove('hidden');
                 } else {
-                    choiceMsgText.innerText = `در انتظار انتخاب علامت توسط حریف (${room.chooser_turn}) باشید...`;
+                    choiceMsgText.innerText = در انتظار انتخاب علامت توسط حریف (${room.chooser_turn}) باشید...;
                     choiceButtons.classList.add('hidden');
                 }
                 return;
@@ -500,7 +502,7 @@ HTML_TEMPLATE = """
                 mySign = (myUser === room.p1) ? room.p1_sign : room.p2_sign;
                 let oppSign = (mySign === 'X') ? 'O' : 'X';
                 
-                choiceMsgText.innerHTML = `علامت‌ها مشخص شد!<br><span style="color:var(--neon-cyan)">شما: ${mySign}</span><br><span style="color:var(--neon-magenta)">حریف: ${oppSign}</span>`;
+                choiceMsgText.innerHTML = علامت‌ها مشخص شد!<br><span style="color:var(--neon-cyan)">شما: ${mySign}</span><br><span style="color:var(--neon-magenta)">حریف: ${oppSign}</span>;
                 choiceButtons.classList.add('hidden');
                 
                 setTimeout(() => {
@@ -519,10 +521,11 @@ HTML_TEMPLATE = """
             } else {
                 if(room.current_turn === mySign) {
                     turnStatus.innerText = "نوبت شماست! یک خانه را خط بزنید.";
-                    turnStatus.style.borderBottomColor = "var(--neon-cyan)";
+
+turnStatus.style.borderBottomColor = "var(--neon-cyan)";
                 } else {
                     let oppName = (mySign === room.p1_sign) ? room.p2 : room.p1;
-                    turnStatus.innerText = `نوبت بازیکن ${oppName} (${room.current_turn})`;
+                    turnStatus.innerText = نوبت بازیکن ${oppName} (${room.current_turn});
                     turnStatus.style.borderBottomColor = "var(--neon-magenta)";
                 }
             }
@@ -572,7 +575,7 @@ HTML_TEMPLATE = """
         } else {
             playSound('win');
             let winnerName = room.winner_status === room.p1_sign ? room.p1 : room.p2;
-            showToast(`بازیکن ${winnerName} (${room.winner_status}) این راند را برد! 🎉`);
+            showToast(بازیکن ${winnerName} (${room.winner_status}) این راند را برد! 🎉);
             if(room.win_pattern) drawNeonLine(room.win_pattern);
         }
 
@@ -585,6 +588,10 @@ HTML_TEMPLATE = """
     function drawNeonLine(pattern) {
         const winLine = document.getElementById('winning-line');
         winLine.style.display = 'block';
+        
+        // رفع باگ موقعیت خط‌کشی با مرتب‌سازی عددی صحیح خانه‌ها
+        const sortedPattern = pattern.map(Number).sort((a, b) => a - b).join('');
+        
         const positions = {
             '012': {top: '45px', left: '10px', width: '260px', height: '5px', transform: 'none'},
             '345': {top: '140px', left: '10px', width: '260px', height: '5px', transform: 'none'},
@@ -595,7 +602,7 @@ HTML_TEMPLATE = """
             '048': {top: '10px', left: '10px', width: '5px', height: '350px', transform: 'rotate(-45deg)', transformOrigin: 'top left'},
             '246': {top: '10px', left: '270px', width: '5px', height: '350px', transform: 'rotate(45deg)', transformOrigin: 'top right'}
         };
-        const style = positions[pattern.sort().join('')];
+        const style = positions[sortedPattern];
         if(style) {
             winLine.style.top = style.top; winLine.style.left = style.left;
             winLine.style.width = style.width; winLine.style.height = style.height;
@@ -603,7 +610,7 @@ HTML_TEMPLATE = """
         }
     }
 
-    function leaveRoom() {
+function leaveRoom() {
         playSound('click');
         if(currentRoom) {
             fetch('/api/leave', {
@@ -722,8 +729,8 @@ def make_move():
             room['win_pattern'] = None
             room['signs_chosen'] = False 
             room['round_count'] += 1
-            
-            room['chooser_turn'] = room['p2'] if room['chooser_turn'] == room['p1'] else room['p1']
+
+room['chooser_turn'] = room['p2'] if room['chooser_turn'] == room['p1'] else room['p1']
             
             room['current_turn'] = room['first_turn_next_round']
             room['first_turn_next_round'] = 'O' if room['first_turn_next_round'] == 'X' else 'X'
@@ -745,7 +752,6 @@ def leave_room():
 def index():
     return render_template_string(HTML_TEMPLATE)
 
-if __name__ == '__main__':
-    # تنظیمات پورت برای سازگاری کامل با هاست رندر (Render)
+if name == 'main':
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
