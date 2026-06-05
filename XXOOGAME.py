@@ -210,7 +210,7 @@ HTML_TEMPLATE = """
             font-size: 2.6rem;
             font-weight: bold;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: background 0.3s, box-shadow 0.3s;
         }
         
         /* اعمال خط‌کشی‌های داخلی بنفش نئونی */
@@ -231,13 +231,11 @@ HTML_TEMPLATE = """
         .cell.cell-x { color: var(--neon-cyan); text-shadow: 0 0 12px var(--neon-cyan); }
         .cell.cell-o { color: var(--neon-magenta); text-shadow: 0 0 12px var(--neon-magenta); }
 
-        .win-line {
-            position: absolute;
-            background: #fff;
-            box-shadow: 0 0 15px #fff, 0 0 25px var(--neon-cyan);
-            border-radius: 4px;
-            z-index: 10;
-            display: none;
+        /* استایل جدید نئونی شدن خانه‌های برنده به رنگ آبی نئونی */
+        .cell.winner-neon-cell {
+            background: rgba(0, 243, 255, 0.25) !important;
+            box-shadow: inset 0 0 15px rgba(0, 243, 255, 0.6), 0 0 15px rgba(0, 243, 255, 0.4) !important;
+            border-color: var(--neon-cyan) !important;
         }
 
         .status-bar {
@@ -316,7 +314,6 @@ HTML_TEMPLATE = """
         </div>
 
         <div class="board-container">
-            <div id="winning-line" class="win-line"></div>
             
             <div id="choice-overlay" class="overlay-choice hidden">
                 <div id="choice-msg-text" style="font-size: 1.2rem; font-weight: bold; line-height: 1.6;">در انتظار ورود حریف...</div>
@@ -530,7 +527,12 @@ HTML_TEMPLATE = """
             // رندر کردن خانه‌ها
             const cells = document.querySelectorAll('.cell');
             room.board.forEach((val, index) => {
-                cells[index].className = 'cell'; 
+                // اگر راند تمام نشده بود، کلاس افکت برنده را پاک کن
+                if(!room.winner_status) {
+                    cells[index].classList.remove('winner-neon-cell');
+                }
+                
+                cells[index].className = cells[index].className.replace(/cell-x|cell-o/g, '').trim();
                 if(val) {
                     cells[index].innerText = val;
                     cells[index].classList.add(val === 'X' ? 'cell-x' : 'cell-o');
@@ -564,7 +566,6 @@ HTML_TEMPLATE = """
 
     function handleRoundEnd(room) {
         room.local_notified = true;
-        const winLine = document.getElementById('winning-line');
         
         if(room.winner_status === 'draw') {
             playSound('draw');
@@ -573,38 +574,19 @@ HTML_TEMPLATE = """
             playSound('win');
             let winnerName = room.winner_status === room.p1_sign ? room.p1 : room.p2;
             showToast(`بازیکن ${winnerName} (${room.winner_status}) این راند را برد! 🎉`);
-            if(room.win_pattern) drawNeonLine(room.win_pattern);
+            
+            // فعال‌سازی پس‌زمینه نئونی آبی برای تک‌تکِ ۳ خانه‌ی برنده بدون خطا
+            if(room.win_pattern) {
+                const cells = document.querySelectorAll('.cell');
+                room.win_pattern.forEach(index => {
+                    cells[index].classList.add('winner-neon-cell');
+                });
+            }
         }
 
         setTimeout(() => {
-            winLine.style.display = 'none';
             updateGameState();
         }, 3000);
-    }
-
-    function drawNeonLine(pattern) {
-        const winLine = document.getElementById('winning-line');
-        winLine.style.display = 'block';
-        
-        // رفع باگ موقعیت خط‌کشی با مرتب‌سازی عددی صحیح خانه‌ها
-        const sortedPattern = pattern.map(Number).sort((a, b) => a - b).join('');
-        
-        const positions = {
-            '012': {top: '45px', left: '10px', width: '260px', height: '5px', transform: 'none'},
-            '345': {top: '140px', left: '10px', width: '260px', height: '5px', transform: 'none'},
-            '678': {top: '235px', left: '10px', width: '260px', height: '5px', transform: 'none'},
-            '036': {top: '10px', left: '45px', width: '5px', height: '260px', transform: 'none'},
-            '147': {top: '10px', left: '140px', width: '5px', height: '260px', transform: 'none'},
-            '258': {top: '10px', left: '235px', width: '5px', height: '260px', transform: 'none'},
-            '048': {top: '10px', left: '10px', width: '5px', height: '350px', transform: 'rotate(-45deg)', transformOrigin: 'top left'},
-            '246': {top: '10px', left: '270px', width: '5px', height: '350px', transform: 'rotate(45deg)', transformOrigin: 'top right'}
-        };
-        const style = positions[sortedPattern];
-        if(style) {
-            winLine.style.top = style.top; winLine.style.left = style.left;
-            winLine.style.width = style.width; winLine.style.height = style.height;
-            winLine.style.transform = style.transform; winLine.style.transformOrigin = style.transformOrigin || 'unset';
-        }
     }
 
     function leaveRoom() {
@@ -726,9 +708,7 @@ def make_move():
             room['win_pattern'] = None
             room['signs_chosen'] = False 
             room['round_count'] += 1
-            
             room['chooser_turn'] = room['p2'] if room['chooser_turn'] == room['p1'] else room['p1']
-            
             room['current_turn'] = room['first_turn_next_round']
             room['first_turn_next_round'] = 'O' if room['first_turn_next_round'] == 'X' else 'X'
             
